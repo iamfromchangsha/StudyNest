@@ -23,7 +23,6 @@ import re
 import pptxtotxt
 import docxtotxt
 from flask_wtf.csrf import generate_csrf
-import seleniumlogin
 import acquire_course
 import acquire_digitalcourse
 import requests
