@@ -3,41 +3,30 @@ import markdown
 
 def markdown_to_html_with_style_and_math(markdown_text):
 
-    # --- 预处理：将LaTeX标准标记转换为MathJax能识别的格式 ---
-    # 处理行内公式 $...$ 转换为 \(...\)
+
     processed_text = re.sub(r'\$(.*?)\$', r'\\(\1\\)', markdown_text)
     
-    # 处理独立行的块级公式 $$...$$ 转换为 \[...\]
     processed_text = re.sub(r'^\$\$(.*?)\$\$$', r'\\[\1\\]', processed_text, flags=re.MULTILINE)
     
-    # --- 预处理：确保标题前后有换行 ---
     lines = processed_text.split('\n')
     final_lines = []
     for i, line in enumerate(lines):
         stripped_line = line.strip()
-        if re.match(r'^#{1,6} ', stripped_line):  # 匹配标题行
-            # 如果不是第一行且前一行非空，则加空行
+        if re.match(r'^#{1,6} ', stripped_line):  
             if i > 0 and final_lines[-1].strip() != "":
                 final_lines.append("")
             final_lines.append(stripped_line)
-            # 如果不是最后一行且下一行非空且不是另一个标题，则加空行
             if i + 1 < len(lines) and lines[i+1].strip() != "" and not re.match(r'^#{1,6} ', lines[i+1].strip()):
                 final_lines.append("")
         else:
             final_lines.append(line)
     processed_text = "\n".join(final_lines)
 
-    # --- Markdown 转换 ---
-    # 'extra' 包含 tables, fenced_code_blocks, header_id 等
-    # 'codehilite' 用于代码高亮
-    # 'toc' 用于生成目录 (可选)
-    # 'nl2br' 将换行符转换为 <br> (有时有用，但需注意与表格的兼容性)
     md = markdown.Markdown(extensions=['extra', 'codehilite', 'tables', 'toc', 'nl2br'])
     html_body = md.convert(processed_text)
 
     html_body = re.sub(r'<em>(.*?)</em>', r'\1', html_body)
 
-    # --- 添加全局样式 ---
     style = """
     <style>
     body {
@@ -102,7 +91,6 @@ def markdown_to_html_with_style_and_math(markdown_text):
     </style>
     """
 
-    # --- 添加 MathJax 配置和 CDN 链接 ---
     mathjax_config = """
     <script>
       window.MathJax = {
@@ -122,7 +110,6 @@ def markdown_to_html_with_style_and_math(markdown_text):
     </script>
     """
 
-    # 将样式、MathJax 配置和内容组合在一起
     full_html = f"""<!DOCTYPE html>
 <html>
 <head>
