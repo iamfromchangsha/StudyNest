@@ -2,9 +2,9 @@ import requests
 import json
 
 baseurl = "https://api.kourichat.com/v1/chat/completions"
-headers = {"Authorization": "Bearer sk-kouri-1skCKxlj95aNC7O1MxloIcBVLdIPwfsoe9cNCIWRkkbseTJt"}
+headers = {"Authorization": "Bearer sk-kouri-aO12bhIupWw5u0WlqK2LYUfdlNKJBeOYDIXeijpXLZS2LnTI"}
 
-def chat_with_ai(content, model="deepseek-chat", temperature=0.7, max_tokens=10000):
+def chat_with_ai(content, model="longcat-flash-thinking", temperature=0.7, max_tokens=10000):
 
     messages = [
         {
@@ -26,8 +26,8 @@ def chat_with_ai(content, model="deepseek-chat", temperature=0.7, max_tokens=100
     }
     
     try:
-        result = requests.post(baseurl, headers=headers, json=payload, timeout=200)  # 添加超时设置
-        result.raise_for_status()  # 检查请求是否成功
+        result = requests.post(baseurl, headers=headers, json=payload, timeout=200) 
+        result.raise_for_status()  
         
         response_data = result.json()
         if "choices" in response_data and len(response_data["choices"]) > 0:
