@@ -1,7 +1,6 @@
 
 from tika import parser
 
-# file_path = r"D:\GitHub\xiaoya_2\download\6857762219124377374\第12章 预应力混凝土结构的概念及其材料.ppt"
 def ppt_to_txt(file_path):
     result = parser.from_file(file_path, serverEndpoint="http://localhost:9998")
 
