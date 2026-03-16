@@ -69,6 +69,7 @@
    ```bash
    pip install flask flask-login flask-wtf wtforms requests volcenginesdkarkruntime
    ```
+   安装 tika-server-standard-3.2.3.jar
 3. 初始化数据库并启动应用：
    ```bash
    python main.py
