@@ -14,5 +14,4 @@ def get_kecheng(token,num):
     kechengbiao = response.json()
     return kechengbiao
 
-#get_kecheng('7361737da39f4aa6b945559600faf135','1')
 
