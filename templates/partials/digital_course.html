@@ -1,0 +1,50 @@
+<div class="digital-course-container ">
+    <h1 class="dashboard-header">数字课程资源</h1>
+
+    {% if chapters %}
+        <div class="chapter-grid">
+            {% for chapter in chapters %}
+                <div class="chapter-card">
+                    <div class="chapter-header">
+                        <h2>{{ chapter.name }}</h2>
+                        <span class="updated-date">更新于: {{ chapter.updated_at }}</span>
+                    </div>
+                    
+                    <div class="files-section">
+                        <h3>资源列表</h3>
+                        {% if chapter.files %}
+                            <ul class="files-list">
+                                {% for file in chapter.files %}
+                                    <li class="file-item">
+                                        <div class="file-icon">
+                                            <!-- {% if file.type == 6 %} -->
+                                                <span title="课件">📄</span>
+                                            {% elif file.type == 7 %}
+                                                <span title="作业">📝</span>
+                                            {% else %}
+                                                <span title="文件">📁</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="file-name">{{ file.name }}</div>
+                                        <div class="file-actions">
+                                            <button class="btn-animate btn-animate__shiny file-download-btn"  hx-get="/preview/{{ file.id }}" hx-target="#content">
+                                            预览
+                                            </button>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="no-files">暂无资源</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-courses">
+            <p>暂无数字课程资源</p>
+        </div>
+    {% endif %}
+</div>
+

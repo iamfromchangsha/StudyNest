@@ -1,0 +1,234 @@
+<div class="ai-analysis-container">
+    <h2>AI 课程分析结果</h2>
+    <p><strong>文件ID:</strong> {{ file_id }}</p>
+    <div class="markdown-content" id="markdownContent">
+        {{ re | safe }}
+    </div>
+    <div class="button-group">
+        <button class="btn-animate btn-animate__shiny nav-btn" hx-get="/digital_course/{{ file_id }}" hx-target="#content" hx-push-url="true">返回课程</button>
+    </div>
+</div>
+
+<script>
+if (typeof window.marked !== 'undefined' && typeof window.katex !== 'undefined') {
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+        sanitize: false,
+        smartLists: true,
+        smartypants: true
+    });
+
+    const renderer = new marked.Renderer();
+    const originalTextRenderer = renderer.text;
+
+    renderer.text = function(text) {
+        let escapedText = originalTextRenderer.call(this, text);
+        escapedText = escapedText.replace(/\$\$(.*?)\$\$/g, function(match, content) {
+            try {
+                console.log("Block math:", content.trim()); 
+                return katex.renderToString(content.trim(), { displayMode: true, throwOnError: false });
+            } catch (err) {
+                console.warn("KaTeX parse error for block math: ", err.message);
+                return match; 
+            }
+        });
+        escapedText = escapedText.replace(/\$(.*?)\$/g, function(match, content) {
+            if (!match.startsWith(') && !match.endsWith(')) {
+                 try {
+                    return katex.renderToString(content.trim(), { displayMode: false, throwOnError: false });
+                } catch (err) {
+                    console.warn("KaTeX parse error for inline math: ", err.message);
+                    return match;
+                }
+            }
+            return match;
+        });
+        return escapedText;
+    };
+
+    const contentElement = document.getElementById('markdownContent');
+    if(contentElement && !contentElement.innerHTML.includes('<h1') && !contentElement.innerHTML.includes('<h2') && !contentElement.innerHTML.includes('<h3')) {
+        const markdownText = contentElement.innerText || contentElement.textContent;
+        const htmlWithMarkdown = marked.parse(markdownText, { renderer: renderer });
+        contentElement.innerHTML = htmlWithMarkdown;
+    } else {
+         if (contentElement) {
+             const walker = document.createTreeWalker(
+                 contentElement,
+                 NodeFilter.SHOW_TEXT,
+                 null,
+                 false
+             );
+
+             const textNodes = [];
+             let node;
+             while (node = walker.nextNode()) {
+                 textNodes.push(node);
+             }
+
+             textNodes.forEach(textNode => {
+                 let parent = textNode.parentNode;
+                 let fullText = textNode.textContent;
+                 let hasChanges = false;
+                 let newNodeContent = '';
+
+                 const regex = /(\$\$[\s\S]*?\$\$|\$.*?\$)/g;
+                 let lastIndex = 0;
+                 let match;
+
+                 while ((match = regex.exec(fullText)) !== null) {
+                     newNodeContent += fullText.substring(lastIndex, match.index);
+                     lastIndex = match[0].length + match.index;
+
+                     const matchedStr = match[0];
+                     let renderedHtml = matchedStr;
+
+                     if (matchedStr.startsWith(') && matchedStr.endsWith(')) {
+                         const latex = matchedStr.slice(2, -2).trim();
+                         try {
+                             renderedHtml = katex.renderToString(latex, { displayMode: true, throwOnError: false });
+                             hasChanges = true;
+                         } catch (err) {
+                             console.warn("KaTeX block parse error: ", err.message);
+                         }
+                     } else if (matchedStr.startsWith('$') && matchedStr.endsWith('$') && !matchedStr.startsWith('$$')) {
+                         const latex = matchedStr.slice(1, -1).trim();
+                         try {
+                             renderedHtml = katex.renderToString(latex, { displayMode: false, throwOnError: false });
+                             hasChanges = true;
+                         } catch (err) {
+                             console.warn("KaTeX inline parse error: ", err.message);
+                         }
+                     }
+                     newNodeContent += renderedHtml;
+                 }
+                 newNodeContent += fullText.substring(lastIndex);
+
+                 if (hasChanges) {
+                     const tempDiv = document.createElement('div');
+                     tempDiv.innerHTML = newNodeContent;
+                     while (tempDiv.firstChild) {
+                         parent.insertBefore(tempDiv.firstChild, textNode);
+                     }
+                     parent.removeChild(textNode);
+                 }
+             });
+         }
+    }
+} else {
+    const katexCss = document.createElement('link');
+    katexCss.rel = 'stylesheet';
+    katexCss.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
+    document.head.appendChild(katexCss);
+
+    const katexScript = document.createElement('script');
+    katexScript.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
+    katexScript.onload = function() {
+        const markedScript = document.createElement('script');
+        markedScript.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        markedScript.onload = function() {
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                sanitize: false,
+                smartLists: true,
+                smartypants: true
+            });
+
+            const renderer = new marked.Renderer();
+            const originalTextRenderer = renderer.text;
+            renderer.text = function(text) {
+                let escapedText = originalTextRenderer.call(this, text);
+                escapedText = escapedText.replace(/\$\$(.*?)\$\$/g, function(match, content) {
+                    try {
+                        return katex.renderToString(content.trim(), { displayMode: true, throwOnError: false });
+                    } catch (err) {
+                        console.warn("KaTeX parse error for block math: ", err.message);
+                        return match;
+                    }
+                });
+                escapedText = escapedText.replace(/\$(.*?)\$/g, function(match, content) {
+                    if (!match.startsWith(') && !match.endsWith(')) {
+                         try {
+                            return katex.renderToString(content.trim(), { displayMode: false, throwOnError: false });
+                        } catch (err) {
+                            console.warn("KaTeX parse error for inline math: ", err.message);
+                            return match;
+                        }
+                    }
+                    return match;
+                });
+                return escapedText;
+            };
+
+            const contentElement = document.getElementById('markdownContent');
+            if(contentElement && !contentElement.innerHTML.includes('<h1') && !contentElement.innerHTML.includes('<h2') && !contentElement.innerHTML.includes('<h3')) {
+                const markdownText = contentElement.innerText || contentElement.textContent;
+                const htmlWithMarkdown = marked.parse(markdownText, { renderer: renderer });
+                contentElement.innerHTML = htmlWithMarkdown;
+            } else {
+                 if (contentElement) {
+                     const walker = document.createTreeWalker(
+                         contentElement,
+                         NodeFilter.SHOW_TEXT,
+                         null,
+                         false
+                     );
+                     const textNodes = [];
+                     let node;
+                     while (node = walker.nextNode()) {
+                         textNodes.push(node);
+                     }
+                     textNodes.forEach(textNode => {
+                         let parent = textNode.parentNode;
+                         let fullText = textNode.textContent;
+                         let hasChanges = false;
+                         let newNodeContent = '';
+                         const regex = /(\$\$[\s\S]*?\$\$|\$.*?\$)/g;
+                         let lastIndex = 0;
+                         let match;
+                         while ((match = regex.exec(fullText)) !== null) {
+                             newNodeContent += fullText.substring(lastIndex, match.index);
+                             lastIndex = match[0].length + match.index;
+                             const matchedStr = match[0];
+                             let renderedHtml = matchedStr;
+                             if (matchedStr.startsWith(') && matchedStr.endsWith(')) {
+                                 const latex = matchedStr.slice(2, -2).trim();
+                                 try {
+                                     renderedHtml = katex.renderToString(latex, { displayMode: true, throwOnError: false });
+                                     hasChanges = true;
+                                 } catch (err) {
+                                     console.warn("KaTeX block parse error: ", err.message);
+                                 }
+                             } else if (matchedStr.startsWith('
+') && matchedStr.endsWith('
+') && !matchedStr.startsWith(')) {
+                                 const latex = matchedStr.slice(1, -1).trim();
+                                 try {
+                                     renderedHtml = katex.renderToString(latex, { displayMode: false, throwOnError: false });
+                                     hasChanges = true;
+                                 } catch (err) {
+                                     console.warn("KaTeX inline parse error: ", err.message);
+                                 }
+                             }
+                             newNodeContent += renderedHtml;
+                         }
+                         newNodeContent += fullText.substring(lastIndex);
+                         if (hasChanges) {
+                             const tempDiv = document.createElement('div');
+                             tempDiv.innerHTML = newNodeContent;
+                             while (tempDiv.firstChild) {
+                                 parent.insertBefore(tempDiv.firstChild, textNode);
+                             }
+                             parent.removeChild(textNode);
+                         }
+                     });
+                 }
+            }
+        };
+        document.head.appendChild(markedScript);
+    };
+    document.head.appendChild(katexScript);
+}
+</script>

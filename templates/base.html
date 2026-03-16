@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ZH-CN">
+    <head>
+    <meta charset="utf-8">
+    <meta name="智学理工坊" content="智学理工坊">
+    <title>智学理工坊</title>
+    <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='htmx.min.js') }}"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px 0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+    <script>
+        // 页面历史记录栈
+        let pageStack = ['/home']; // 初始化为首页
+        
+        // 监听HTMX请求完成事件
+        document.addEventListener('htmx:afterOnLoad', function(evt) {
+            // 获取当前请求的路径
+            const currentPath = evt.detail.xhr.responseURL.split(window.location.host)[1] || evt.detail.pathInfo.requestPath;
+            
+            // 如果不是历史记录中的上一个页面，则添加到历史记录
+            if(pageStack.length === 0 || pageStack[pageStack.length - 1] !== currentPath) {
+                pageStack.push(currentPath);
+            }
+            
+            // 显示返回按钮（如果历史记录超过1个页面）
+            const backButton = document.getElementById('backButton');
+            if(backButton) {
+                backButton.style.display = pageStack.length > 1 ? 'block' : 'none';
+            }
+        });
+        
+        // 返回上一页功能
+        function goBack() {
+            if(pageStack.length > 1) {
+                pageStack.pop(); // 移除当前页面
+                
+                // 获取上一个页面路径
+                const previousPage = pageStack[pageStack.length - 1];
+                
+                // 用HTMX加载上一个页面
+                htmx.ajax('GET', previousPage, {target: '#content', swap: 'innerHTML'});
+                
+                // 如果只剩一个页面，隐藏返回按钮
+                const backButton = document.getElementById('backButton');
+                if(backButton && pageStack.length <= 1) {
+                    backButton.style.display = 'none';
+                }
+            }
+        }
+                // 在登录成功后更新账户信息
+                // 登录成功后更新账户信息的函数
+        function updateAccountInfoAfterLogin() {
+            // 延迟执行，确保登录流程完成后再更新账户信息
+            setTimeout(function() {
+                htmx.ajax('GET', '/acount', {target: '#user-avatar', swap: 'outerHTML'});
+            }, 10);
+        }
+        
+        // 监听文档上的登录成功事件
+        document.addEventListener('loginSuccess', function() {
+            updateAccountInfoAfterLogin();
+        });
+    </script>
+
+    </head>
+    <body>
+        <header>
+            <div class="icon">
+                <img src="{{ url_for('static', filename='icon.svg') }}" alt="智学理工坊" width="52" height="52">    
+                <span>智学理工坊</span>
+            </div>
+            <nav>
+                <div class="nav-group-head">
+                    <div class="btn-animate btn-animate__shiny nav-btn" hx-get="/home" hx-target="#content" hx-push-url="true">首页</div>
+                    <div class="btn-animate btn-animate__shiny nav-btn" hx-get="/dashboard" hx-target="#content" hx-push-url="true">课程</div>
+                    <div class="btn-animate btn-animate__shiny nav-btn" hx-get="/about" hx-target="#content" hx-push-url="true">关于</div>
+                </div>
+                <div class="nav-group">
+                    <div class="btn-animate btn-animate__shiny nav-btn" hx-get="/login" hx-target="#content" hx-push-url="true">登录</div>
+                    <div class="btn-animate btn-animate__shiny nav-btn" hx-get="/logout" hx-target="#content" hx-push-url="true">登出</div>
+                </div>
+                <div id="acount" hx-get="/acount" hx-trigger="load" hx-target="#acount" hx-swap="outerHTML"></div>
+            </nav>
+        </header>
+        <div class="main-content">
+            <div id="backButton" class="btn-animate btn-animate__shiny back-button" onclick="goBack()" style="display:none;">返回</div>
+            <div id="content">
+                      {% block content %}{% endblock %}
+            </div>
+        </div>
+        <footer><p>
+            <a href="https://beian.miit.gov.cn/" 
+               target="_blank" 
+               style="text-decoration: none; color: #555; font-size: 14px; padding: 4px 8px; border-radius: 4px; transition: background-color 0.3s ease;"
+               onmouseover="this.style.backgroundColor='#f0f0f0'"
+               onmouseout="this.style.backgroundColor='transparent'">
+              湘ICP备2025151186号
+            </a>
+          </p></footer>
+    </body>
+</html>

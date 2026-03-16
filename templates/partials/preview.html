@@ -1,0 +1,120 @@
+<div class="preview-container">
+    <div class="split-view">
+        <!-- PDF 预览区域 -->
+        <div class="pdf-preview-section">
+            <h3>PDF 预览</h3>
+            <iframe src="{{preview_url}}" class="preview-frame" frameborder="0" ></iframe>
+        </div>
+        
+        <!-- AI 分析区域 -->
+        <div class="ai-analysis-section">
+            <h3>AI 课程分析</h3>
+            <div class="ai-controls">
+                <button id="analyzeBtn" class="btn-animate btn-animate__shiny" hx-get = "/ai_analysis/{{file_id}}" hx-target="#analysisResult" hx-swap="outerHTML">开始AI分析</button>
+                <button id="stopBtn" class="btn-animate btn-animate__shiny" style="display:none;" onclick="stopAnalysis()">停止分析</button>
+            </div>
+            
+            <div id="analysisResult" class="markdown-content">
+                <p>点击上方按钮开始AI分析PDF内容...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- <script>
+let eventSource;
+
+function startAnalysis() {
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const analysisResult = document.getElementById('analysisResult');
+    
+    analyzeBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-block';
+    
+    // 显示加载状态
+    analysisResult.innerHTML = '<p>正在分析中，请稍候...</p>';
+    
+    // 构建流式分析API的URL
+    const fileId = "{{ file_id }}";
+    const token = "{{ token or '' }}"; // 假设token会传入
+    
+    // 使用EventSource进行流式接收
+    eventSource = new EventSource(`/stream_analyze/${fileId}`);
+    
+    let fullResult = '';
+    
+    eventSource.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'delta') {
+                // 接收到新的内容片段，追加到现有内容
+                fullResult += data.content;
+                analysisResult.innerHTML = window.marked.parse(fullResult);
+                
+                // 滚动到底部
+                analysisResult.scrollTop = analysisResult.scrollHeight;
+            } else if (data.type === 'done') {
+                // 分析完成
+                eventSource.close();
+                finishAnalysis();
+            } else if (data.type === 'error') {
+                analysisResult.innerHTML = `<p style="color: red;">${data.message}</p>`;
+                finishAnalysis();
+            }
+        } catch (e) {
+            console.error('解析消息时出错:', e);
+            console.log('Raw event data:', event.data);
+        }
+    };
+    
+    eventSource.onerror = function(event) {
+        console.error('EventSource 错误:', event);
+        analysisResult.innerHTML += '<p style="color: red;">连接错误，请重试。</p>';
+        finishAnalysis();
+    };
+}
+
+function stopAnalysis() {
+    if (eventSource) {
+        eventSource.close();
+    }
+    finishAnalysis();
+}
+
+function finishAnalysis() {
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    
+    analyzeBtn.style.display = 'inline-block';
+    stopBtn.style.display = 'none';
+}
+
+// 引入marked库用于渲染Markdown
+if (typeof window.marked === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+    script.onload = function() {
+        // 确保marked库加载完成后设置安全选项
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+            sanitize: false,
+            smartLists: true,
+            smartypants: true
+        });
+    };
+    document.head.appendChild(script);
+} else {
+    // 如果marked已经存在，也设置选项
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+        sanitize: false,
+        smartLists: true,
+        smartypants: true
+    });
+}
+</script> -->

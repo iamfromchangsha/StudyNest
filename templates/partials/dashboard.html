@@ -1,0 +1,25 @@
+<div class="dashboard-card">
+    <h1 class="dashboard-header">课程信息展示</h1>
+
+    {% if courses %}
+        <div class="course-grid">
+            {% for course in courses %}
+                <div class="course-card" hx-get="/digital_course/{{ course.id }}" hx-target="#content" >
+                    <img src="{{ course.cover_img }}" alt="课程图片" class="course-image">
+                    <div class="course-content">
+                        <h2>{{ course.site_name }}</h2>
+                        <div class="course-info">
+                            <p><span class="course-icon">👤</span><strong>教师:</strong> {{ course.teacher_names }}</p>
+                            <p><span class="course-icon">🏢</span><strong>学院:</strong> {{ course.department_name }}</p>
+                            <p><span class="course-icon">🕒</span><strong>最后更新:</strong> {{ course.updated_at }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-courses">
+            <p>暂无课程信息</p>
+        </div>
+    {% endif %}
+</div>

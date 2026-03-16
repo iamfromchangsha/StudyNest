@@ -1,0 +1,16 @@
+<div class="login-card">
+  <h2>账号绑定</h2>
+  <form hx-post="/complete_profile" hx-target="#result" hx-swap="innerHTML">
+      {{ form.hidden_tag() }}
+      <div class="mb-3">
+          {{ form.whutusername.label(class="form-label") }}
+          {{ form.whutusername(class="form-control") }}
+      </div>
+      <div class="mb-3">
+          {{ form.whutpassword.label(class="form-label") }}
+          {{ form.whutpassword(class="form-control") }}
+      </div>
+      <button type="submit" class="btn btn-primary">绑定</button>
+  </form>
+
+</div>
